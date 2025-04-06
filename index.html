@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GENERATOR - P&L Calculator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.5.0-beta4/html2canvas.min.js"></script>
+    <style>
+        :root {
+            --dark-bg: #121212;
+            --card-bg: #1e1e1e;
+            --positive-green: #00d38b;
+            --neutral-gray: #757575;
+            --text-white: #ffffff;
+            --text-gray: #9ca3af;
+            --accent-color: #2dcfcf;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: var(--dark-bg);
+            color: var(--text-white);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 0;
+        }
+        
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 0;
+        }
+        
+        .logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: var(--accent-color);
+            letter-spacing: 1px;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+        }
+        
+        .nav-links a {
+            color: var(--text-white);
+            text-decoration: none;
+            font-size: 1rem;
+        }
+        
+        .user-icons {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .user-icons button {
+            background: none;
+            border: none;
+            color: var(--text-white);
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .hero {
+            text-align: center;
+            margin: 3rem 0;
+        }
+        
+        .hero h1 {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .hero h1 span {
+            color: var(--accent-color);
+        }
+        
+        .hero p {
+            font-size: 1.2rem;
+            color: var(--text-gray);
+            margin-bottom: 2rem;
+        }
+        
+        .calculator-container {
+            display: flex;
+            justify-content: space-between;
+            gap: 2rem;
+            margin: 2rem 0;
+            position: relative;
+            border-radius: 20px;
+            overflow: hidden;
+            background-color: var(--card-bg);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+            padding: 3px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .calculator-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, var(--accent-color), transparent);
+        }
+        
+        .chat-section {
+            flex: 1;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .result-section {
+            flex: 1;
+            background-color: #1A1A1A;
+            border-radius: 0 20px 20px 0;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .chat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .chat-title {
+            font-size: 1.2rem;
+            color: var(--accent-color);
+        }
+        
+        .clear-btn {
+            background: none;
+            border: none;
+            color: var(--text-gray);
+            cursor: pointer;
+            font-size: 0.9rem;
+            padding: 0.3rem 0.8rem;
+            border-radius: 15px;
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+        
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            max-height: 400px;
+        }
+        
+        .message {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.8rem;
+            margin-bottom: 0.5rem;
+            max-width: 90%;
+        }
+        
+        .message.left {
+            align-self: flex-start;
+        }
+        
+        .message.right {
+            align-self: flex-end;
+            flex-direction: row-reverse;
+        }
+        
+        .avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background-color: var(--accent-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            color: var(--dark-bg);
+            font-size: 0.9rem;
+            flex-shrink: 0;
+        }
+        
+        .message-content {
+            background-color: rgba(255, 255, 255, 0.05);
+            padding: 1rem;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+        
+        .message.right .message-content {
+            background-color: var(--accent-color);
+            color: var(--dark-bg);
+        }
+        
+        .chat-input {
+            display: flex;
+            gap: 0.8rem;
+            margin-top: auto;
+        }
+        
+        .chat-input input {
+            flex: 1;
+            padding: 0.8rem 1rem;
+            border: none;
+            border-radius: 8px;
+            background-color: rgba(255, 255, 255, 0.05);
+            color: var(--text-white);
+            font-size: 1rem;
+        }
+        
+        .send-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            border: none;
+            background-color: var(--accent-color);
+            color: var(--dark-bg);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+        }
+        
+        .options-container {
+            margin-bottom: 1rem;
+        }
+        
+        .option-group {
+            margin-bottom: 1rem;
+            background-color: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 1rem;
+        }
+        
+        .option-title {
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            color: var(--accent-color);
+        }
+        
+        .option-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .option-btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 8px;
+            background-color: rgba(255, 255, 255, 0.1);
+            color: var(--text-white);
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+        
+        .option-btn.active {
+            background-color: var(--accent-color);
+            color: var(--dark-bg);
+        }
+        
+        .input-field {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .input-field input {
+            flex: 1;
+            padding: 0.6rem 1rem;
+            border: none;
+            border-radius: 8px;
+            background-color: rgba(255, 255, 255, 0.05);
+            color: var(--text-white);
+            font-size: 0.9rem;
+        }
+        
+        .input-field label {
+            min-width: 100px;
+            display: flex;
+            align-items: center;
+            font-size: 0.9rem;
+            color: var(--text-gray);
+        }
+        
+        .calculate-btn {
+            width: 100%;
+            padding: 0.8rem;
+            margin-top: 1rem;
+            background-color: var(--accent-color);
+            color: var(--dark-bg);
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .calculate-btn:hover {
+            background-color: #25b1b1;
+        }
+        
+        .result-card {
+            background-color: #000000;
+            border-radius: 12px;
+            padding: 1.5rem;
+            position: relative;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            margin-top: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .card-logo {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #fff;
+            margin-bottom: 1rem;
+        }
+        
+        .asset-info {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+        
+        .position-tag {
+            font-size: 0.8rem;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            background-color: rgba(0, 211, 139, 0.7);
+            color: var(--dark-bg);
+        }
+        
+        .roi-label {
+            font-size: 0.9rem;
+            color: var(--text-gray);
+            margin-bottom: 0.3rem;
+        }
+        
+        .roi {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin: 1rem 0 1.5rem 0;
+            color: var(--positive-green);
+        }
+        
+        .price-info {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 1.5rem;
+        }
+        
+        .price-column {
+            flex: 1;
+        }
+        
+        .price-label {
+            font-size: 0.9rem;
+            color: var(--text-gray);
+            margin-bottom: 0.3rem;
+        }
+        
+        .price-value {
+            font-size: 1.2rem;
+        }
+        
+        .rocket-container {
+            position: absolute;
+            top: 60px;
+            right: 1.5rem;
+            width: 250px;
+        }
+        
+        .rocket-img {
+            width: 100%;
+            height: auto;
+        }
+        
+        .result-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 1.5rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            background-color: #f5f5f5;
+            padding: 0.8rem 1rem;
+            border-radius: 0 0 12px 12px;
+        }
+        
+        .result-footer p {
+            margin: 0;
+            font-size: 0.8rem;
+            color: #333;
+        }
+        
+        .qr-code {
+            width: 60px;
+            height: 60px;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 0.8rem;
+            margin-top: 1.5rem;
+        }
+        
+        .action-btn {
+            flex: 1;
+            padding: 0.8rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            background-color: rgba(255, 255, 255, 0.05);
+            color: var(--text-white);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+        }
+        
+        .action-btn:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .background-pattern {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.05;
+            pointer-events: none;
+            background-image: linear-gradient(to right, rgba(255,255,255,0.1) 1px, transparent 1px),
+                              linear-gradient(to bottom, rgba(255,255,255,0.1) 1px, transparent 1px);
+            background-size: 20px 20px;
+            z-index: 0;
+        }
+        
+        /* Responsive */
+        @media (max-width: 992px) {
+            .calculator-container {
+                flex-direction: column;
+            }
+            
+            .result-section {
+                border-radius: 0 0 20px 20px;
+            }
+            
+            .rocket-container {
+                position: relative;
+                right: auto;
+                top: auto;
+                transform: none;
+                margin: 1rem auto;
+                text-align: center;
+            }
+            
+            .rocket-img {
+                max-width: 300px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+            
+            .calculator-container {
+                margin-top: 1rem;
+            }
+            
+            .chat-section, .result-section {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">GENERATOR</div>
+            <div class="nav-links">
+                <a href="#">Home</a>
+            </div>
+            <div class="user-icons">
+                <button>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                </button>
+                <button>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="1"></circle>
+                        <circle cx="12" cy="5" r="1"></circle>
+                        <circle cx="12" cy="19" r="1"></circle>
+                    </svg>
+                </button>
+            </div>
+        </header>
+        
+        <section class="hero">
+            <h1>P&L <span>SHARE</span></h1>
+            <p>Calculate and share your trading performance</p>
+        </section>
+        
+        <div class="calculator-container">
+            <div class="background-pattern"></div>
+            
+            <div class="chat-section">
+                <div class="chat-header">
+                    <div class="chat-title">Input</div>
+                    <button class="clear-btn" id="clear-btn">Clear chat</button>
+                </div>
+                
+                <div class="chat-messages" id="chat-messages">
+                    <div class="message left">
+                        <div class="avatar">G</div>
+                        <div class="message-content">
+                            Hello! I'm your P&L calculator. Please enter your asset name, position type, leverage, entry price, and current price to calculate your P&L.
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="options-container" id="options-container">
+                    <div class="option-group">
+                        <div class="option-title">Position Type</div>
+                        <div class="option-buttons">
+                            <button class="option-btn active" data-type="long">Long</button>
+                            <button class="option-btn" data-type="short">Short</button>
+                        </div>
+                    </div>
+                    
+                    <div class="option-group">
+                        <div class="input-field">
+                            <label>Asset Name</label>
+                            <input type="text" id="asset-name" placeholder="BTCUSDT" value="BTCUSDT">
+                        </div>
+                        
+                        <div class="input-field">
+                            <label>Leverage (x)</label>
+                            <input type="number" id="leverage" placeholder="10" value="10" min="1">
+                        </div>
+                        
+                        <div class="input-field">
+                            <label>Entry Price</label>
+                            <input type="number" id="entry-price" placeholder="Enter price" step="0.01">
+                        </div>
+                        
+                        <div class="input-field">
+                            <label>Current Price</label>
+                            <input type="number" id="current-price" placeholder="Enter price" step="0.01">
+                        </div>
+                    </div>
+                    
+                    <button class="calculate-btn" id="calculate-btn">Calculate P&L</button>
+                </div>
+                
+                <div class="chat-input">
+                    <input type="text" placeholder="Ask about your P&L calculation..." id="chat-input-field">
+                    <button class="send-btn" id="send-btn" disabled>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="22" y1="2" x2="11" y2="13"></line>
+                            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="result-section">
+                <div class="chat-header">
+                    <div class="chat-title">Results</div>
+                    <button class="clear-btn" id="reset-btn">Reset</button>
+                </div>
+                
+                <div class="result-card" id="result-card" style="display: none;">
+                    <div class="card-logo">GENERATOR</div>
+                    
+                    <div class="asset-info">
+                        <span id="result-asset-name">BTCUSDT</span>
+                        <span class="position-tag" id="result-position-type">Long 10x</span>
+                    </div>
+                    
+                    <div class="roi-label">ROI</div>
+                    <div class="roi" id="result-roi">+24.17%</div>
+                    
+                    <div class="price-info">
+                        <div class="price-column">
+                            <div class="price-label">Entry Price</div>
+                            <div class="price-value" id="result-entry-price">84,820.00</div>
+                        </div>
+                        <div class="price-column">
+                            <div class="price-label">Last Traded Price</div>
+                            <div class="price-value" id="result-current-price">86,880.50</div>
+                        </div>
+                    </div>
+                    
+                    <div class="rocket-container">
+                        <img 
+                        src="./assets/rocket.png" 
+                        alt="Pepe" 
+                        class="rocket-img" 
+                        id="rocket-img"
+                        crossorigin="anonymous"
+                        />
+                    </div>
+                    
+                    <div class="result-footer">
+                        <p>Join and make P&L Image in GENERATOR</p>
+                        <img 
+                        src="./assets/qr.jpg" 
+                        alt="QR Code" 
+                        class="qr-code" 
+                        id="qr-code"
+                        crossorigin="anonymous"
+                        />
+                    </div>
+                </div>
+                
+                <div class="action-buttons" id="action-buttons" style="display: none;">
+                    <button class="action-btn" id="screenshot-btn">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                            <polyline points="21 15 16 10 5 21"></polyline>
+                        </svg>
+                        Screenshot
+                    </button>
+                    <button class="action-btn" id="share-btn">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path>
+                            <polyline points="16 6 12 2 8 6"></polyline>
+                            <line x1="12" y1="2" x2="12" y2="15"></line>
+                        </svg>
+                        Share to X
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // DOM elements
+        const optionBtns = document.querySelectorAll('.option-btn');
+        const calculateBtn = document.getElementById('calculate-btn');
+        const clearBtn = document.getElementById('clear-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        const resultCard = document.getElementById('result-card');
+        const actionButtons = document.getElementById('action-buttons');
+        const chatMessages = document.getElementById('chat-messages');
+        const chatInputField = document.getElementById('chat-input-field');
+        const sendBtn = document.getElementById('send-btn');
+        const screenshotBtn = document.getElementById('screenshot-btn');
+        const shareBtn = document.getElementById('share-btn');
+        const rocketImg = document.getElementById('rocket-img');
+        
+        // Current position type
+        let currentPositionType = 'long';
+        
+        // Option button toggle
+        optionBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                optionBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentPositionType = btn.dataset.type;
+            });
+        });
+        
+        // Clear button
+        clearBtn.addEventListener('click', () => {
+            // Remove all messages except the first one
+            while (chatMessages.children.length > 1) {
+                chatMessages.removeChild(chatMessages.lastChild);
+            }
+        });
+        
+        // Reset button
+        resetBtn.addEventListener('click', () => {
+            resultCard.style.display = 'none';
+            actionButtons.style.display = 'none';
+            
+            // Add reset message
+            addMessage("Results have been reset. You can make a new calculation.", 'left');
+        });
+        
+        // Calculate P&L
+        calculateBtn.addEventListener('click', () => {
+            const assetName = document.getElementById('asset-name').value || 'BTCUSDT';
+            const leverage = parseFloat(document.getElementById('leverage').value) || 10;
+            const entryPrice = parseFloat(document.getElementById('entry-price').value);
+            const currentPrice = parseFloat(document.getElementById('current-price').value);
+            
+            if (!entryPrice || !currentPrice) {
+                addMessage('Please enter both entry price and current price.', 'left');
+                return;
+            }
+            
+            // Add user calculation request message
+            addMessage(`Calculate P&L for ${assetName} ${currentPositionType} position at ${leverage}x leverage. Entry: ${entryPrice}, Current: ${currentPrice}`, 'right');
+            
+            let roi;
+            if (currentPositionType === 'long') {
+                roi = ((currentPrice - entryPrice) / entryPrice) * 100 * leverage;
+            } else {
+                roi = ((entryPrice - currentPrice) / entryPrice) * 100 * leverage;
+            }
+            
+            // Update result card
+            document.getElementById('result-asset-name').textContent = assetName;
+            document.getElementById('result-position-type').textContent = `${currentPositionType === 'long' ? 'Long' : 'Short'} ${leverage}x`;
+            document.getElementById('result-position-type').style.backgroundColor = currentPositionType === 'long' ? 'rgba(0, 211, 139, 0.7)' : 'rgba(244, 67, 54, 0.7)';
+            
+            const roiElement = document.getElementById('result-roi');
+            roiElement.textContent = `${roi >= 0 ? '+' : ''}${roi.toFixed(2)}%`;
+            roiElement.style.color = roi >= 0 ? 'var(--positive-green)' : '#f44336';
+            
+            // Fix for decimal point formatting
+            document.getElementById('result-entry-price').textContent = formatNumber(entryPrice);
+            document.getElementById('result-current-price').textContent = formatNumber(currentPrice);
+            
+            // Helper function to properly format numbers with commas and decimal points
+            function formatNumber(num) {
+                // Handle numbers with or without decimal points
+                if (Number.isInteger(num)) {
+                    return num.toLocaleString('en-US');
+                } else {
+                    // Convert to string and split at decimal point
+                    const parts = num.toString().split('.');
+                    // Format integer part with commas
+                    parts[0] = parts[0] === '0' ? '0' : parseInt(parts[0]).toLocaleString('en-US');
+                    // Combine with decimal part if it exists
+                    return parts.length > 1 ? parts[0] + '.' + parts[1] : parts[0];
+                }
+            }
+            
+            // Show result card and action buttons
+            resultCard.style.display = 'block';
+            actionButtons.style.display = 'flex';
+            
+            // Add assistant response message
+            setTimeout(() => {
+                addMessage(`I've calculated your ${assetName} ${currentPositionType} position at ${leverage}x leverage. Your ROI is ${roi >= 0 ? '+' : ''}${roi.toFixed(2)}%. You can view the full result card and take a screenshot or share it.`, 'left');
+            }, 500);
+            
+            // Update rocket image (flip if negative)
+            if (roi < 0) {
+                rocketImg.style.transform = 'rotate(180deg)';
+            } else {
+                rocketImg.style.transform = 'rotate(0deg)';
+            }
+        });
+        
+        // Add message to chat
+        function addMessage(text, side) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${side}`;
+            
+            const avatarDiv = document.createElement('div');
+            avatarDiv.className = 'avatar';
+            avatarDiv.textContent = side === 'left' ? 'G' : 'U';
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            contentDiv.textContent = text;
+            
+            messageDiv.appendChild(avatarDiv);
+            messageDiv.appendChild(contentDiv);
+            
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        
+        // Send button
+        sendBtn.addEventListener('click', () => {
+            const text = chatInputField.value.trim();
+            if (text) {
+                addMessage(text, 'right');
+                chatInputField.value = '';
+                
+                // Simulate response based on keywords
+                setTimeout(() => {
+                    if (text.toLowerCase().includes('calculate') || text.toLowerCase().includes('p&l')) {
+                        addMessage("To calculate P&L, please fill in the asset name, position type, leverage, entry price, and current price, then click the 'Calculate P&L' button.", 'left');
+                    } else if (text.toLowerCase().includes('reset') || text.toLowerCase().includes('clear')) {
+                        addMessage("You can clear the chat using the 'Clear chat' button or reset the results using the 'Reset' button in the results section.", 'left');
+                    } else if (text.toLowerCase().includes('help') || text.toLowerCase().includes('how')) {
+                        addMessage("I'm a P&L calculator that helps you calculate profit and loss for your trading positions. Enter your trading details in the form above and click 'Calculate P&L' to get started.", 'left');
+                    } else {
+                        addMessage("I'm here to help with P&L calculations. If you want to calculate profits or losses on a position, please provide the trading details in the form above.", 'left');
+                    }
+                }, 500);
+            }
+        });
+        
+        // Enter key to send
+        chatInputField.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendBtn.click();
+            }
+        });
+        
+        // Screenshot to Clipboard
+        screenshotBtn.addEventListener('click', () => {
+            const resultCard = document.getElementById('result-card');
+            resultCard.style.display = 'block';
+
+            html2canvas(resultCard, {
+                backgroundColor: null,
+                scale: 2,
+                useCORS: false,
+                allowTaint: false,
+                logging: false,
+                onclone: (clonedDoc) => {
+                    const rocketImg = clonedDoc.getElementById('rocket-img');
+                    if (rocketImg) {
+                        rocketImg.style.display = 'block';
+                        rocketImg.setAttribute('crossorigin', 'anonymous');
+                    }
+
+                    const qrCode = clonedDoc.getElementById('qr-code');
+                    if (qrCode) {
+                        qrCode.style.display = 'block';
+                        qrCode.setAttribute('crossorigin', 'anonymous');
+                    }
+                }
+            }).then(canvas => {
+                canvas.toBlob(blob => {
+                    if (!blob) {
+                        addMessage('Failed to convert screenshot to image blob.', 'left');
+                        return;
+                    }
+
+                    const item = new ClipboardItem({ 'image/png': blob });
+
+                    navigator.clipboard.write([item]).then(() => {
+                        addMessage('📋 Screenshot copied to clipboard!', 'left');
+                    }).catch(err => {
+                        console.error('Clipboard write failed:', err);
+                        addMessage('❌ Failed to copy screenshot to clipboard.', 'left');
+                    });
+                }, 'image/png');
+            }).catch(error => {
+                console.error('Screenshot failed:', error);
+                addMessage('Screenshot error: ' + error.message, 'left');
+            });
+        });
+        
+        // Share to X (Twitter)
+        shareBtn.addEventListener('click', () => {
+            html2canvas(document.getElementById('result-card'), {
+                backgroundColor: null,
+                scale: 2
+            }).then(canvas => {
+                const imageUrl = canvas.toDataURL('image/png');
+                
+                // Get values for tweet text
+                const assetName = document.getElementById('result-asset-name').textContent;
+                const roi = document.getElementById('result-roi').textContent;
+                const positionType = document.getElementById('result-position-type').textContent;
+                
+                // Create tweet text
+                const tweetText = `My ${assetName} ${positionType} position is currently at ${roi} ROI. Generated with GENERATOR.`;
+                
+                // Open Twitter intent in new window
+                window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`, '_blank');
+                
+                addMessage('Your P&L result has been shared to X!', 'left');
+            });
+        });
+        
+        // Initialize with default values
+        window.addEventListener('load', () => {
+            // Set a QR code for the website
+            document.getElementById('qr-code').src = "./assets/qr.jpg";
+            // Update rocket image URL
+            document.getElementById('rocket-img').src = "./assets/rocket.png" ;
+
+            // Initialize placeholder values
+            document.getElementById('result-asset-name').textContent = 'BTCUSDT';
+            document.getElementById('result-position-type').textContent = 'Long 10x';
+            document.getElementById('result-roi').textContent = '+24.17%';
+            document.getElementById('result-entry-price').textContent = '84,820.00';
+            document.getElementById('result-current-price').textContent = '86,880.50';
+        });
+    </script>
+</body>
+</html>
